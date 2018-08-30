@@ -1,10 +1,32 @@
 const express = require('express');
 const hbs = require('hbs');
+const fs = require('fs');
+const port = process.env.PORT || 3000;
 
 let app = express();
 
+hbs.registerPartials(__dirname + '/views/partials');
 app.set('view engine', 'hbs');
+
+app.use((req, res, next) => {
+    let now = new Date().toString();  
+    let log = `${now}: ${req.method} ${req.url}`
+
+    fs.appendFileSync('server.log', log+'\n');
+    next();
+});
+
+// app.use((req,res,next) => {
+//     res.render('maintenance.hbs');
+// });
+
 app.use(express.static(__dirname + '/public'));
+
+hbs.registerHelper('getCurrentYear', () => {
+    return new Date().getFullYear();
+});
+
+hbs.registerHelper('screamIt', (text) => text.toUpperCase());
 
 app.get('/', (req, resp) => {
     // resp.send('<h1>Hello Express!</h1>');
@@ -18,14 +40,18 @@ app.get('/', (req, resp) => {
     resp.render('home.hbs', {
         pageTitle: 'Home page',
         wellcomeMsg: 'Hello pokemons!',
-        currentYear: new Date().getFullYear()
     });
 });
 
 app.get('/about', (req, resp) => {
     resp.render('about.hbs', {
-        pageTitle: 'About page1',
-        currentYear: new Date().getFullYear()
+        pageTitle: 'About page',
+    });
+});
+
+app.get('/projects', (req, resp) => {
+    resp.render('projects.hbs', {
+        wellcomeMsg: 'Portfolio page here!',
     });
 });
 
@@ -34,6 +60,7 @@ app.get('/bad', (req, resp) => {
         error: 'Watafak error!'
     });
 });
-app.listen(3000, () => {
-    console.log('Server is up on port 3000');
+
+app.listen(port, () => {
+    console.log(`Server is up on port ${port}`);
 });
